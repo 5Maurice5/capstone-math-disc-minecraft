@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laberinto Matemático Minecraft</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 font-pixel select-none">
+
+
+<header class="text-center mb-4">
+    <h1 class="text-4xl text-yellow-400 tracking-wider">LABERINTO MATEMÁTICO</h1>
+    <p class="text-gray-400 text-lg">Usa W, A, S, D o las Flechas para moverte hacia los objetos</p>
+</header>
+
+<div class="flex items-center gap-6 mb-4 bg-gray-800 p-3 rounded-lg border-2 border-gray-600">
+    <div class="flex items-center gap-2">
+        <span class="text-xl">Cristales:</span>
+        <span id="crystal-1" class="px-2 py-1 bg-gray-700 rounded text-2xl opacity-40">💎</span>
+        <span id="crystal-2" class="px-2 py-1 bg-gray-700 rounded text-2xl opacity-40">💎</span>
+        <span id="crystal-3" class="px-2 py-1 bg-gray-700 rounded text-2xl opacity-40">💎</span>
+    </div>
+    <div class="text-xl">
+        Portal: <span id="portal-status" class="text-red-600 font-pixel">BLOQUEADO</span>
+    </div>
+</div>
+
+<div class="relative border-4 border-amber-800 rounded-lg shadow-2xl overflow-hidden bg-black">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="zone-toast" class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/80 border border-yellow-500 text-yellow-300 px-4 py-2 rounded text-xl opacity-0 transition-opacity duration-300 pointer-events-none">
+        ¡Mensaje del sistema!
+    </div>
+</div>
+
+
+<div class="grid grid-cols-3 gap-2 mt-4 md:hidden">
+    <div></div>
+    <button onclick="handleTouch('Up')" class="bg-gray-700 p-4 rounded text-2xl active:bg-gray-600">⬆️</button>
+    <div></div>
+    <button onclick="handleTouch('Left')" class="bg-gray-700 p-4 rounded text-2xl active:bg-gray-600">⬅️</button>
+    <button onclick="handleTouch('Down')" class="bg-gray-700 p-4 rounded text-2xl active:bg-gray-600">⬇️</button>
+    <button onclick="handleTouch('Right')" class="bg-gray-700 p-4 rounded text-2xl active:bg-gray-600">➡️</button>
+</div>
+
+<!-- ==================== MODALES DE LAS ZONAS ==================== -->
+<!-- ZONA 1: Inducción Matemática (🚨) -->
+<div id="modal-z1" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-gray-800 border-4 border-yellow-600 p-6 rounded-lg max-w-lg w-full text-white">
+        <h2 class="text-3xl text-yellow-400 mb-2">🚨 ZONA 1: FARO DE INDUCCIÓN</h2>
+        <p class="text-gray-300 mb-4 text-xl">
+            Demuestra la suma de los primeros \(n\) cuadrados:
+            $$\sum_{i=1}^{n} i^2 = \frac{n(n+1)(2n+1)}{6}$$
+        </p>
+
+        <div class="mb-4">
+            <p class="text-lg mb-1">1. Pasos del Caso Base \(n=1\): ¿Es verdadero?</p>
+            <div class="flex gap-4">
+                <button id="z1-btn-true" onclick="selectZ1Base(true)" class="bg-green-700 hover:bg-green-600 px-4 py-2 rounded text-xl">Verdadero</button>
+                <button id="z1-btn-false" onclick="selectZ1Base(false)" class="bg-red-700 hover:bg-red-600 px-4 py-2 rounded text-xl">Falso</button>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <p class="text-lg mb-1">2. Evalúa la suma para \(n=4\):</p>
+            <input type="number" id="z1-answer" placeholder="Ej: 30" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-xl text-yellow-300">
+        </div>
+
+        <p id="z1-feedback" class="h-6 mb-4"></p>
+
+        <div class="flex justify-end gap-2">
+            <button onclick="closeModal('modal-z1')" class="bg-gray-600 px-4 py-2 rounded text-xl">Cerrar</button>
+            <button onclick="verifyZone1()" class="bg-yellow-600 hover:bg-yellow-500 px-4 py-2 rounded text-xl font-bold">Verificar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ZONA 2: Teoría de Conjuntos (📦) -->
+<div id="modal-z2" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-gray-800 border-4 border-blue-600 p-6 rounded-lg max-w-lg w-full text-white">
+        <h2 class="text-3xl text-blue-400 mb-2">📦 ZONA 2: COFRE DE CONJUNTOS</h2>
+        <p class="text-gray-300 mb-2 text-xl">Un Zombie ataca. Elige el objeto que pertenece a la intersección \(A \cap B\):</p>
+        <p class="text-gray-400 text-sm mb-4">
+            Conjunto A = {Espada, Manzana Dorada, Casco}<br>
+            Conjunto B = {Manzana Dorada, Poción, Escudo}
+        </p>
+
+        <div class="grid grid-cols-1 gap-2 mb-4">
+            <button onclick="checkZ2Answer('Espada')" class="bg-gray-700 hover:bg-gray-600 p-3 rounded text-left text-xl">⚔️ Espada</button>
+            <button onclick="checkZ2Answer('🍎 Manzana Dorada')" class="bg-gray-700 hover:bg-gray-600 p-3 rounded text-left text-xl">🍎 Manzana Dorada</button>
+            <button onclick="checkZ2Answer('Poción')" class="bg-gray-700 hover:bg-gray-600 p-3 rounded text-left text-xl">🧪 Poción</button>
+        </div>
+
+        <p id="z2-feedback" class="h-6 mb-4"></p>
+
+        <div class="flex justify-end">
+            <button onclick="closeModal('modal-z2')" class="bg-gray-600 px-4 py-2 rounded text-xl">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ZONA 3: Relaciones Binarias (🔒) -->
+<div id="modal-z3" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-gray-800 border-4 border-green-600 p-6 rounded-lg max-w-lg w-full text-white">
+        <h2 class="text-3xl text-green-400 mb-2">🔒 ZONA 3: PUERTA DE RELACIONES</h2>
+
+        <p class="text-gray-300 mb-3 text-lg">
+            Observa la <strong>Matriz de Adyacencia Booleana</strong> de la relación \(R: \text{Herramientas} \to \text{Materiales}\) (donde <span class="text-green-400 font-bold">1</span> significa que produce el material):
+        </p>
+
+        <div class="bg-gray-900 p-3 rounded-lg border border-gray-700 mb-4 font-mono text-center">
+            <table class="w-full text-center border-collapse">
+                <thead>
+                <tr class="border-b border-gray-700 text-yellow-400">
+                    <th class="p-1">R</th>
+                    <th class="p-1">Madera</th>
+                    <th class="p-1">Diamante</th>
+                    <th class="p-1">Tierra</th>
+                </tr>
+                </thead>
+                <tbody class="text-gray-200">
+                <tr class="border-b border-gray-800">
+                    <td class="font-bold text-yellow-300 p-1">Pico (R1)</td>
+                    <td class="p-1 text-red-400">0</td>
+                    <td class="p-1 text-green-400 font-bold">1</td>
+                    <td class="p-1 text-red-400">0</td>
+                </tr>
+                <tr class="border-b border-gray-800">
+                    <td class="font-bold text-yellow-300 p-1">Hacha (R2)</td>
+                    <td class="p-1 text-green-400 font-bold">1</td>
+                    <td class="p-1 text-red-400">0</td>
+                    <td class="p-1 text-red-400">0</td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-yellow-300 p-1">Pala (R3)</td>
+                    <td class="p-1 text-red-400">0</td>
+                    <td class="p-1 text-red-400">0</td>
+                    <td class="p-1 text-green-400 font-bold">1</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="space-y-3 mb-4">
+            <div>
+                <label class="block mb-1 text-base">Pico R1 produce (donde hay un 1):</label>
+                <select id="z3-rel-1" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-lg text-yellow-300">
+                    <option value="">Selecciona...</option>
+                    <option value="Madera">Madera</option>
+                    <option value="Diamante">Diamante</option>
+                    <option value="Tierra">Tierra</option>
+                </select>
+            </div>
+            <div>
+                <label class="block mb-1 text-base">Hacha R2 produce (donde hay un 1):</label>
+                <select id="z3-rel-2" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-lg text-yellow-300">
+                    <option value="">Selecciona...</option>
+                    <option value="Madera">Madera</option>
+                    <option value="Diamante">Diamante</option>
+                    <option value="Tierra">Tierra</option>
+                </select>
+            </div>
+            <div>
+                <label class="block mb-1 text-base">Pala R3 produce (donde hay un 1):</label>
+                <select id="z3-rel-3" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-lg text-yellow-300">
+                    <option value="">Selecciona...</option>
+                    <option value="Madera">Madera</option>
+                    <option value="Diamante">Diamante</option>
+                    <option value="Tierra">Tierra</option>
+                </select>
+            </div>
+        </div>
+
+        <p id="z3-feedback" class="h-6 mb-4"></p>
+
+        <div class="flex justify-end gap-2">
+            <button onclick="closeModal('modal-z3')" class="bg-gray-600 px-4 py-2 rounded text-xl">Cerrar</button>
+            <button onclick="verifyZone3()" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded text-xl font-bold">Desbloquear</button>
+        </div>
+    </div>
+</div>
+
+<!-- ZONA 4: Combinatoria (🎒) -->
+<div id="modal-z4" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-gray-800 border-4 border-purple-600 p-6 rounded-lg max-w-lg w-full text-white">
+        <h2 class="text-3xl text-purple-400 mb-2">🎒 ZONA 4: BOLSA COMBINATORIA</h2>
+        <p class="text-gray-300 mb-4 text-xl">
+            Tienes 8 elementos en tu inventario. ¿De cuántas formas puedes elegir 3 objetos sin importar el orden?
+            $$C(8, 3) = \frac{8!}{3!(8-3)!}$$
+        </p>
+
+        <input type="number" id="z4-answer" placeholder="Respuesta" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-xl text-yellow-300 mb-4">
+
+        <p id="z4-feedback" class="h-6 mb-4"></p>
+
+        <div class="flex justify-end gap-2">
+            <button onclick="closeModal('modal-z4')" class="bg-gray-600 px-4 py-2 rounded text-xl">Cerrar</button>
+            <button onclick="verifyZone4()" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded text-xl font-bold">Obtener Cristal</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VICTORIA -->
+<div id="modal-victory" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-gray-800 border-4 border-yellow-400 p-8 rounded-lg max-w-md w-full text-center">
+        <h2 class="text-5xl text-yellow-400 mb-4">🎉 ¡VICTORIA! 🎉</h2>
+        <p class="text-2xl text-gray-200 mb-6">Has completado todos los problemas y escapado del laberinto.</p>
+        <button onclick="resetGame()" class="bg-yellow-500 hover:bg-yellow-400 text-black text-2xl font-bold px-6 py-3 rounded-lg">Jugar de Nuevo</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
