@@ -893,6 +893,37 @@ function copySourceCode() {
   }
 }
 
+/* ===== MÚSICA DE FONDO (toda la página) ===== */
+const bgMusic = document.getElementById("bg-music");
+let musicEnabled = true;
+bgMusic.volume = 0.4;
+
+function playMusic() {
+  if (!musicEnabled) return;
+  // El navegador puede bloquear el audio hasta que el usuario interactúe
+  bgMusic.play().catch(() => {});
+}
+
+function toggleMusic() {
+  musicEnabled = !musicEnabled;
+  document.getElementById("music-btn").textContent =
+    "Música: " + (musicEnabled ? "Sí" : "No");
+  if (musicEnabled) playMusic();
+  else bgMusic.pause();
+}
+
+// Intenta sonar al cargar; si el navegador lo bloquea, suena en la primera interacción
+playMusic();
+["pointerdown", "keydown"].forEach((ev) => {
+  window.addEventListener(
+    ev,
+    () => {
+      if (bgMusic.paused) playMusic();
+    },
+    { once: true },
+  );
+});
+
 // Inicialización
 drawTitlePanorama();
 renderZ2();
